@@ -25,7 +25,7 @@ Mini Amazon Go, as the project name say, is a try of recreate Amazon Go in a low
 
 ### Built With
 * [Arduino](https://www.arduino.cc)
-* [Tinkercad](https://www.tinkercad.com)
+* [Fritzing](https://fritzing.org/home/)
 
 
 <!-- GETTING STARTED -->
@@ -36,8 +36,4 @@ Mini Amazon Go, as the project name say, is a try of recreate Amazon Go in a low
 * Jumpers
 
 ### Schematic
-<!--   [![Product Name Screen Shot][product-screenshot]](https://user-images.githubusercontent.com/42683154/78951473-b059f000-7aa8-11ea-9efd-59ad68a549fd.jpg)   -->
-
-##### Em Desenvolvimento
-
-<!--   pode ser visto em mais detalhes no <a href="https://xxgithub.com/othneildrew/Best-README-Template">Tinkercad</a>   -->
+<img src="https://user-images.githubusercontent.com/42683154/79593853-71ccc280-80b2-11ea-85ed-40340aff6d0d.png">
