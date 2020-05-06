@@ -1,7 +1,6 @@
 #include "OV7670.h"
 #include <WiFi.h>
-#include <WiFiMulti.h>
-#include <WiFiClient.h>
+#include <HTTPClient.h>
 #include "BMP.h"
 
 const int SIOD = 21;
@@ -19,90 +18,60 @@ const int D5 = 13;
 const int D6 = 12;
 const int D7 = 4;
 
-#define ssid1        "Xiaomi"
-#define password1    "mudar@123"
+#define ssid "Xiaomi"
+#define password "mudar@123"
+#define serverUrl "https://httpbin.org/post"
 
-OV7670 *camera;
-
-WiFiMulti wifiMulti;
-WiFiServer server(80);
+OV7670 * camera;
 
 unsigned char bmpHeader[BMP::headerSize];
 
-void serve()
+void send()
 {
-  WiFiClient client = server.available();
-  if (client) 
-  {
-    Serial.println("New Client.");
-    String currentLine = "";
-    while (client.connected()) 
+    if (WiFi.status() == WL_CONNECTED)
     {
-        if (client.available()) 
-        {
-            char c = client.read();
-            if (c == '\n') 
-            {
-            if (currentLine.length() == 0) 
-            {
-                client.println("HTTP/1.1 200 OK");
-                client.println("Content-type:text/html");
-                client.println();
-                client.print(
-                "<style>body{margin: 0}\nimg{height: 100%; width: auto}</style>"
-                "<img id='a' src='/camera' onload='this.style.display=\"initial\"; var b = document.getElementById(\"b\"); b.style.display=\"none\"; b.src=\"camera?\"+Date.now(); '>"
-                "<img id='b' style='display: none' src='/camera' onload='this.style.display=\"initial\"; var a = document.getElementById(\"a\"); a.style.display=\"none\"; a.src=\"camera?\"+Date.now(); '>");
-                client.println();
-                break;
-            } 
-            else 
-            {
-                currentLine = "";
-            }
-            } 
-            else if (c != '\r') 
-            {
-            currentLine += c;
-            }
-            
-            if(currentLine.endsWith("GET /camera"))
-            {
-                client.println("HTTP/1.1 200 OK");
-                client.println("Content-type:image/bmp");
-                client.println();
-                
-                client.write(bmpHeader, BMP::headerSize);
-                client.write(camera->frame, camera->xres * camera->yres * 2);
-            }
-        }
+        HTTPClient http;
+        http.begin(serverUrl);
+        http.addHeader("Content-Type", "text/plain");  //Specify content-type header
+        int httpRespCode = http.POST("POSTING from ESP32");
+
+        Serial.print(httpRespCode);
+
+        http.end();
     }
-    client.stop();
-  }  
+    else
+    {
+        Serial.println("Error: No WiFi connection");
+    }
 }
 
-void setup() 
+void setup()
 {
-  pinMode(5, INPUT);
-  Serial.begin(9600);
-  Serial.println("Inicializando Setup");
+    pinMode(5, INPUT);
+    Serial.begin(9600);
+    Serial.println("Initializing Setup");
+    delay(4000);  //Delay needed before calling the WiFi.begin
+    WiFi.begin(ssid, password);
+    Serial.println("Connecting Wifi...");
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+    }
 
-  wifiMulti.addAP(ssid1, password1);
-  Serial.println("Connecting Wifi...");
-  if(wifiMulti.run() == WL_CONNECTED) {
-      Serial.println("");
-      Serial.println("WiFi connected");
-      Serial.println("IP address: ");
-      Serial.println(WiFi.localIP());
-  }
-  
-  camera = new OV7670(OV7670::Mode::QQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
-  BMP::construct16BitHeader(bmpHeader, camera->xres, camera->yres);
+    Serial.println("WiFi connected");
 
-  server.begin();
+    camera = new OV7670(OV7670::Mode::QQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
+    BMP::construct16BitHeader(bmpHeader, camera->xres, camera->yres);
 }
 
 void loop()
 {
-    camera->oneFrame();
-    serve();
+    Serial.println(digitalRead(5));
+    if (digitalRead(5) == 1)
+    {
+        camera->oneFrame();
+        send();
+    }
+
+    delay(1000);
 }
