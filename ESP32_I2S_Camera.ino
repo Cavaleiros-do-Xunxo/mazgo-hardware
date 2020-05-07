@@ -20,7 +20,7 @@ const int D7 = 4;
 
 #define ssid "Xiaomi"
 #define password "mudar@123"
-#define serverUrl "https://httpbin.org/post"
+#define serverUrl "https://postb.in/1588820048766-5172054460272"
 
 OV7670 * camera;
 
@@ -32,10 +32,20 @@ void send()
     {
         HTTPClient http;
         http.begin(serverUrl);
-        http.addHeader("Content-Type", "text/plain");  //Specify content-type header
-        int httpRespCode = http.POST("POSTING from ESP32");
+        http.addHeader("Content-Type", "image/bmp");  //Specify content-type header
 
-        Serial.print(httpRespCode);
+        byte* content = new byte[BMP::headerSize + ((camera->xres * camera->yres)*2)];
+        for(int i = 0 ; i < sizeof(bmpHeader); i++ ){
+          content[i] = bmpHeader[i];
+        }
+        unsigned char* cmr = camera->frame;   
+        for(int i = sizeof(bmpHeader) ; i < sizeof(cmr) ; i++ ){
+          content[i] = cmr[i - sizeof(bmpHeader)];
+        }
+        
+        int httpRespCode = http.POST(content, sizeof(content));
+
+        Serial.println(httpRespCode);
 
         http.end();
     }
@@ -66,7 +76,6 @@ void setup()
 
 void loop()
 {
-    Serial.println(digitalRead(5));
     if (digitalRead(5) == 1)
     {
         camera->oneFrame();
