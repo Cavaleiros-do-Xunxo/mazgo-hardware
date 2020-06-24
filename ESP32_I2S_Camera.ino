@@ -28,30 +28,41 @@ unsigned char bmpHeader[BMP::headerSize];
 
 void send()
 {
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        HTTPClient http;
-        http.begin(serverUrl);
-        http.addHeader("Content-Type", "image/bmp");  //Specify content-type header
+    WiFiClient client;
 
-        byte* content = new byte[BMP::headerSize + ((camera->xres * camera->yres)*2)];
-        for(int i = 0 ; i < sizeof(bmpHeader); i++ ){
-          content[i] = bmpHeader[i];
+    const char *host = "insert.your.ip.address:5000";
+
+    if (client.connect(host, 5000)) {
+        client.println("POST /teste HTTP/1.1");
+        client.println("Host: insert.your.ip.address:5000");
+        client.println("Cache-Control: no-cache");
+        client.println("Content-Type: image/bmp");
+        client.println();
+        client.write(bmpHeader, BMP::headerSize);
+        client.write(camera->frame, camera->xres * camera->yres * 2);
+
+        long interval = 2000;
+        unsigned long currentMillis = millis(), previousMillis = millis();
+
+        while(!client.available()){
+
+            if( (currentMillis - previousMillis) > interval ){
+                Serial.println("Timeout");
+                client.stop();     
+                return;
+            }
+
+            currentMillis = millis();
         }
-        unsigned char* cmr = camera->frame;   
-        for(int i = sizeof(bmpHeader) ; i < sizeof(cmr) ; i++ ){
-          content[i] = cmr[i - sizeof(bmpHeader)];
+
+        while (client.connected())
+        {
+            if ( client.available() )
+            {
+                char str = client.read();
+                Serial.println(str);
+            }
         }
-        
-        int httpRespCode = http.POST(content, sizeof(content));
-
-        Serial.println(httpRespCode);
-
-        http.end();
-    }
-    else
-    {
-        Serial.println("Error: No WiFi connection");
     }
 }
 
