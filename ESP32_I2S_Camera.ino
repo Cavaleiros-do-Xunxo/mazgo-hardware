@@ -18,30 +18,37 @@ const int D5 = 13;
 const int D6 = 12;
 const int D7 = 4;
 
-#define ssid "Xiaomi"
-#define password "mudar@123"
-#define serverUrl "https://postb.in/1588820048766-5172054460272"
+#define ssid "SSID DA INTERNET"
+#define password "SENHA DA INTERNET"
+#define host "IP DO SERVIDOR"
+//PORTA PADRAO DO SERVIDOR = 5000
 
 OV7670 * camera;
 
 unsigned char bmpHeader[BMP::headerSize];
 
+struct PacketHeader {
+  uint8_t frame;
+  uint32_t offset;
+  uint32_t len;
+};
+
 void send()
 {
     WiFiClient client;
 
-    const char *host = "insert.your.ip.address:5000";
-
     if (client.connect(host, 5000)) {
+        Serial.println("RODANDO!!!");
         client.println("POST /teste HTTP/1.1");
-        client.println("Host: insert.your.ip.address:5000");
+        client.println("Host:port");
         client.println("Cache-Control: no-cache");
         client.println("Content-Type: image/bmp");
         client.println();
+
         client.write(bmpHeader, BMP::headerSize);
         client.write(camera->frame, camera->xres * camera->yres * 2);
 
-        long interval = 2000;
+        long interval = 5000;
         unsigned long currentMillis = millis(), previousMillis = millis();
 
         while(!client.available()){
@@ -66,10 +73,12 @@ void send()
     }
 }
 
+
 void setup()
 {
     pinMode(5, INPUT);
-    Serial.begin(9600);
+    Serial.begin(115200);
+    while(!Serial){};
     Serial.println("Initializing Setup");
     delay(4000);  //Delay needed before calling the WiFi.begin
     WiFi.begin(ssid, password);
@@ -87,11 +96,10 @@ void setup()
 
 void loop()
 {
-    if (digitalRead(5) == 1)
+    //if (digitalRead(5) == 1)
     {
         camera->oneFrame();
         send();
+        delay(3000);
     }
-
-    delay(1000);
 }
