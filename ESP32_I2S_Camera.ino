@@ -18,10 +18,10 @@ const int D5 = 13;
 const int D6 = 12;
 const int D7 = 4;
 
-#define ssid "SSID DA INTERNET"
-#define password "SENHA DA INTERNET"
-#define host "IP DO SERVIDOR"
-//PORTA PADRAO DO SERVIDOR = 5000
+#define ssid "Xiaomi"
+#define password "mudar@123"
+#define host "<IP do Servidor>"
+//default port = 5000
 
 OV7670 * camera;
 
@@ -39,7 +39,7 @@ void send()
 
     if (client.connect(host, 5000)) {
         Serial.println("RODANDO!!!");
-        client.println("POST /teste HTTP/1.1");
+        client.println("POST /detection HTTP/1.1");
         client.println("Host:port");
         client.println("Cache-Control: no-cache");
         client.println("Content-Type: image/bmp");
@@ -96,7 +96,7 @@ void setup()
 
 void loop()
 {
-    //if (digitalRead(5) == 1)
+    if (digitalRead(5) == 1)
     {
         camera->oneFrame();
         send();
