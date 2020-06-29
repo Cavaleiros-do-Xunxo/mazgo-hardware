@@ -1,6 +1,5 @@
 #include "OV7670.h"
 #include <WiFi.h>
-#include <HTTPClient.h>
 #include "BMP.h"
 
 const int SIOD = 21;
@@ -21,24 +20,18 @@ const int D7 = 4;
 #define ssid "Xiaomi"
 #define password "mudar@123"
 #define host "<IP do Servidor>"
-//default port = 5000
 
 OV7670 * camera;
 
 unsigned char bmpHeader[BMP::headerSize];
 
-struct PacketHeader {
-  uint8_t frame;
-  uint32_t offset;
-  uint32_t len;
-};
-
 void send()
 {
     WiFiClient client;
 
+    // Flask server running on port 5000 by default.
     if (client.connect(host, 5000)) {
-        Serial.println("RODANDO!!!");
+        Serial.println("Start sending POST");
         client.println("POST /detection HTTP/1.1");
         client.println("Host:port");
         client.println("Cache-Control: no-cache");
